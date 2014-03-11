@@ -6,6 +6,7 @@ module Reactive.Hyper.Banana (
 import Reactive.Hyper
 import qualified Reactive.Banana as B
 import Control.Applicative
+import Control.Monad.Fix
 import Data.Monoid
 
 
@@ -19,9 +20,11 @@ instance Reactive Banana where
     newtype Behavior Banana a = Behavior (B.Behavior T a)
         deriving (Functor, Applicative)
     newtype Frame Banana a = Frame (B.Moment T a)
-        deriving (Functor, Applicative, Monad)
+        deriving (Functor, Applicative, Monad, MonadFix)
 
-    stepper def (Event e) = Frame $ return $ Behavior $ B.stepper def e
+    hold def (Event e) = Frame $ return $ Behavior $ B.stepper def e
+    Behavior bf <@> Event ea = Event (bf B.<@> ea)
+    filterJust (Event ema) = Event (B.filterJust ema)
 
 instance Monoid (Event Banana a) where
     mempty = Event B.never

@@ -6,6 +6,7 @@ module Reactive.Hyper.Sodium (
 import Reactive.Hyper
 import qualified FRP.Sodium as S
 import Control.Applicative
+import Control.Monad.Fix
 import Data.Monoid
 
 
@@ -17,7 +18,9 @@ instance Reactive Sodium where
     newtype Behavior Sodium a = Behavior { unBehavior :: S.Behavior a }
         deriving (Functor, Applicative)
     newtype Frame Sodium a = Frame (S.Reactive a)
-        deriving (Functor, Applicative, Monad)
+        deriving (Functor, Applicative, Monad, MonadFix)
 
-    stepper def (Event e) = Frame $ Behavior <$> S.hold def e
+    hold def (Event e) = Frame $ Behavior <$> S.hold def e
+    Behavior bf <@> Event ea = Event (S.snapshot (flip ($)) ea bf)
+    filterJust (Event ema) = Event (S.filterJust ema)
 
