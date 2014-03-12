@@ -14,7 +14,7 @@ data Sodium
 
 instance Reactive Sodium where
     newtype Event Sodium a    = Event { unEvent :: S.Event a }
-        deriving (Functor, Monoid)
+        deriving (Functor)
     newtype Behavior Sodium a = Behavior { unBehavior :: S.Behavior a }
         deriving (Functor, Applicative)
     newtype Frame Sodium a = Frame (S.Reactive a)
@@ -23,4 +23,6 @@ instance Reactive Sodium where
     hold def (Event e) = Frame $ Behavior <$> S.hold def e
     Behavior bf <@> Event ea = Event (S.snapshot (flip ($)) ea bf)
     filterJust (Event ema) = Event (S.filterJust ema)
+    mempty_ = Event mempty
+    Event a `mappend_` Event b = Event (a `mappend` b)
 

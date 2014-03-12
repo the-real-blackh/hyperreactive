@@ -1,11 +1,9 @@
 {-# LANGUAGE OverloadedStrings, RecursiveDo, Rank2Types, FlexibleInstances, FlexibleContexts,
-             TupleSections, GADTs #-}
+             TupleSections, GADTs, ConstraintKinds #-}
 module UnitTests where
 
 import Reactive.Hyper
-import Control.Applicative
 import Data.Maybe
-import Data.Monoid
 import Data.Text (Text)
 import Data.Traversable
 
@@ -14,7 +12,7 @@ data Result = Pass | Fail String deriving (Eq, Ord, Show)
 
 data Test r = Test {
     teName :: Text,
-    teCode :: (Reactive r, Monoid (Event r Result)) => Event r () -> Frame r (Event r Result)
+    teCode :: Event r () -> Frame r (Event r Result)
   }
 
 input :: Reactive r =>
@@ -31,7 +29,7 @@ input2 eStep values = do
     (ep, eEnd) <- input eStep values
     return (filterJust $ fst <$> ep, filterJust $ snd <$> ep, eEnd)
 
-merge1 :: Monoid (Event r Text) => Test r
+merge1 :: Reactive r => Test r
 merge1 = Test "merge1" $ \eStep -> do
     (e1, e2, eEnd) <- input2 eStep [
         (Just ("hello" :: Text), Nothing),
@@ -43,13 +41,13 @@ merge1 = Test "merge1" $ \eStep -> do
                                     else Fail $ show as
       ) . reverse <$> (answers <@ eEnd)
 
-tests :: (Reactive r, Monoid (Event r Text)) =>
+tests :: (Reactive r) =>
          [Test r]
 tests = [
     merge1
   ]
 
-suite :: (Reactive r, Monoid (Event r Text), Monoid (Event r Result), Monoid (Event r [(Text, Result)])) =>
+suite :: Reactive r =>
          Event r () -> Frame r (Event r [(Text, Result)])
 suite eStep = do
     results <- forM tests $ \te -> do

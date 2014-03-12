@@ -25,8 +25,6 @@ instance Reactive Banana where
     hold def (Event e) = Frame $ return $ Behavior $ B.stepper def e
     Behavior bf <@> Event ea = Event (bf B.<@> ea)
     filterJust (Event ema) = Event (B.filterJust ema)
-
-instance Monoid (Event Banana a) where
-    mempty = Event B.never
-    Event ea `mappend` Event eb = Event (ea `B.union` eb) 
+    mempty_ = Event B.never
+    Event ea `mappend_` Event eb = Event (ea `B.union` eb) 
 

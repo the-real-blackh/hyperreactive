@@ -1,9 +1,12 @@
 {-# LANGUAGE TypeFamilies, FlexibleContexts, ConstraintKinds, RecursiveDo #-}
-module Reactive.Hyper where
+module Reactive.Hyper (
+        Reactive(..),
+        module Control.Applicative,
+        module Data.Monoid
+    ) where
 
 import Control.Applicative
 import Control.Monad.Fix
-import Data.Constraint.Forall
 import Data.Monoid
 
 infixl 4 <@>
@@ -11,7 +14,6 @@ infixl 4 <@
 
 class   (
             Functor (Event r),
-            ForallF Monoid (Event r),
             Functor (Behavior r),
             Applicative (Behavior r),
             Functor (Frame r),
@@ -39,4 +41,11 @@ class   (
         return s
 
     filterJust :: Event r (Maybe a) -> Event r a
+    
+    mempty_ :: Event r a
+    mappend_ :: Event r a -> Event r a -> Event r a
+
+instance Reactive r => Monoid (Event r a) where
+    mempty = mempty_
+    mappend = mappend_
 
