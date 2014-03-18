@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings, RecursiveDo, Rank2Types, FlexibleInstances, FlexibleContexts,
-             TupleSections, GADTs, ConstraintKinds #-}
+             TupleSections, GADTs, ConstraintKinds, ScopedTypeVariables #-}
 module UnitTests where
 
 import Reactive.Hyper
@@ -41,19 +41,28 @@ merge1 = Test "merge1" $ \eStep -> do
                                     else Fail $ show as
       ) . reverse <$> (answers <@ eEnd)
 
+filterJust1 :: Reactive r => Test r
+filterJust1 = Test "filterJust1" $ \eStep -> do
+    (e, eEnd) <- input eStep ([Just "yes", Nothing, Just "no"] :: [Maybe Text])
+    answers <- accum [] ((:) <$> filterJust e)
+    return $ (\as ->
+        if as == ["yes", "no"] then Pass
+                               else Fail $ show as
+      ) . reverse <$> (answers <@ eEnd)
+
 tests :: (Reactive r) =>
          [Test r]
 tests = [
-    merge1
+    merge1,
+    filterJust1
   ]
 
-suite :: Reactive r =>
+suite :: forall r . Reactive r =>
          Event r () -> Frame r (Event r [(Text, Result)])
 suite eStep = do
     results <- forM tests $ \te -> do
         eAnswer <- (Just . (teName te,) <$>) <$> teCode te eStep
         hold Nothing eAnswer
     let answers = sequenceA results
-        
-    return mempty
+    return $ filterJust $ sequenceA <$> answers <@ eStep
 

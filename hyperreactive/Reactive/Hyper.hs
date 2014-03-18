@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies, FlexibleContexts, ConstraintKinds, RecursiveDo #-}
+{-# LANGUAGE TypeFamilies, FlexibleContexts, RecursiveDo #-}
 module Reactive.Hyper (
         Reactive(..),
         module Control.Applicative,
